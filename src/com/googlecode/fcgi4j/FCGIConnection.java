@@ -3,12 +3,14 @@ package com.googlecode.fcgi4j;
 import com.googlecode.fcgi4j.constant.FCGIHeaderType;
 import com.googlecode.fcgi4j.constant.FCGIRole;
 import com.googlecode.fcgi4j.exceptions.FCGIException;
+import com.googlecode.fcgi4j.exceptions.FCGIInvalidHeaderException;
 import com.googlecode.fcgi4j.exceptions.FCGIUnKnownHeaderException;
 import com.googlecode.fcgi4j.message.*;
 import com.googlecode.fcgi4j.util.IoUtils;
 
 import java.io.IOException;
 import java.net.SocketAddress;
+import java.nio.BufferUnderflowException;
 import java.nio.ByteBuffer;
 import java.nio.channels.ByteChannel;
 import java.nio.channels.GatheringByteChannel;
@@ -52,7 +54,7 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         paramsMap = new HashMap<String, FCGIParams>();
         responseHeaders = new HashMap<String, String>();
         headerBuffer = ByteBuffer.allocateDirect(FCGIHeader.FCGI_HEADER_LEN);
-        dataBuffer = ByteBuffer.allocateDirect(64 * 1024);
+        dataBuffer = ByteBuffer.allocateDirect(128 * 1024);
     }
 
     public static FCGIConnection open() throws IOException {
@@ -507,7 +509,11 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
                 throw e;
             }
 
-            readResponseHeaders();
+            try {
+                readResponseHeaders();
+            } catch (BufferUnderflowException e) {
+                throw new FCGIInvalidHeaderException();
+            }
 
             readStarted = true;
         }
