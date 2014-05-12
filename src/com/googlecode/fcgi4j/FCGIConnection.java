@@ -248,7 +248,6 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
     private FCGIHeader readHeader() throws IOException {
         IoUtils.socketRread(socketChannel, headerBuffer);
 
-        System.out.println(headerBuffer.toString());
         headerBuffer.flip();
         FCGIHeader header = FCGIHeader.parse(headerBuffer);
         headerBuffer.clear();
