@@ -2,6 +2,8 @@ package com.googlecode.fcgi4j;
 
 import com.googlecode.fcgi4j.constant.FCGIHeaderType;
 import com.googlecode.fcgi4j.constant.FCGIRole;
+import com.googlecode.fcgi4j.exceptions.FCGIException;
+import com.googlecode.fcgi4j.exceptions.FCGIUnKnownHeaderException;
 import com.googlecode.fcgi4j.message.*;
 import com.googlecode.fcgi4j.util.IoUtils;
 
@@ -18,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @author panzd
  */
 public class FCGIConnection implements GatheringByteChannel, ScatteringByteChannel, ByteChannel {
@@ -245,6 +246,7 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
     private FCGIHeader readHeader() throws IOException {
         IoUtils.socketRread(socketChannel, headerBuffer);
 
+        System.out.println(headerBuffer.toString());
         headerBuffer.flip();
         FCGIHeader header = FCGIHeader.parse(headerBuffer);
         headerBuffer.clear();
@@ -495,12 +497,17 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
             flushParams();
             flushStdins();
 
-            FCGIHeader firstHeader = readHeader();
+            try {
+                FCGIHeader firstHeader = readHeader();
+                if (firstHeader.getType() == FCGIHeaderType.FCGI_STDOUT) {
+                    bufferStdoutData(firstHeader.getLength(), firstHeader.getPadding());
+                }
 
-            if (firstHeader.getType() == FCGIHeaderType.FCGI_STDOUT) {
-                bufferStdoutData(firstHeader.getLength(), firstHeader.getPadding());
-                readResponseHeaders();
+            } catch (FCGIUnKnownHeaderException e) {
+                throw e;
             }
+
+            readResponseHeaders();
 
             readStarted = true;
         }

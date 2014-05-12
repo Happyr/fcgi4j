@@ -1,5 +1,7 @@
 package com.googlecode.fcgi4j.constant;
 
+import com.googlecode.fcgi4j.exceptions.FCGIUnKnownHeaderException;
+
 /**
  * @author panzd
  */
@@ -80,7 +82,11 @@ public enum FCGIHeaderType {
     }
 
     public static FCGIHeaderType valueOf(int id) {
-        return typeMap[id];
+        try {
+            return typeMap[id];
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new FCGIUnKnownHeaderException("Header: " + id);
+        }
     }
 
     public abstract int getId();

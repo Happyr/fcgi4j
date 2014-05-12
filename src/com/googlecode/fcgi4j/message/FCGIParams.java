@@ -1,7 +1,7 @@
 package com.googlecode.fcgi4j.message;
 
-import com.googlecode.fcgi4j.FCGIException;
 import com.googlecode.fcgi4j.constant.FCGIHeaderType;
+import com.googlecode.fcgi4j.exceptions.FCGIException;
 
 import java.nio.ByteBuffer;
 
