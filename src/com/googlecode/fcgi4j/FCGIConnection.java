@@ -48,6 +48,7 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
     private FCGIEndRequest endRequest;
     private boolean readStarted;
     private boolean bufferEmpty;
+    private boolean cleanStdErr;
     private SocketChannel socketChannel;
 
     private FCGIConnection() {
@@ -166,6 +167,7 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         stdinsWritten = false;
         stdinsFlushed = false;
         readStarted = false;
+        cleanStdErr = true;
         bufferEmpty = true;
 
         dataBuffer.clear();
@@ -245,6 +247,12 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         }
     }
 
+    /**
+     * Read IP packet headers
+     *
+     * @return
+     * @throws IOException
+     */
     private FCGIHeader readHeader() throws IOException {
         IoUtils.socketRread(socketChannel, headerBuffer);
 
@@ -498,20 +506,30 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
             flushParams();
             flushStdins();
 
+            FCGIHeader firstHeader;
             try {
-                FCGIHeader firstHeader = readHeader();
-                if (firstHeader.getType() == FCGIHeaderType.FCGI_STDOUT) {
-                    bufferStdoutData(firstHeader.getLength(), firstHeader.getPadding());
-                }
+                firstHeader = readHeader();
 
             } catch (FCGIUnKnownHeaderException e) {
                 throw e;
             }
 
-            try {
-                readResponseHeaders();
-            } catch (BufferUnderflowException e) {
-                throw new FCGIInvalidHeaderException();
+            if (firstHeader.getType() == FCGIHeaderType.FCGI_STDOUT) {
+                bufferStdoutData(firstHeader.getLength(), firstHeader.getPadding());
+
+                try {
+                    readResponseHeaders();
+                } catch (BufferUnderflowException e) {
+                    throw new FCGIInvalidHeaderException();
+                }
+            }
+
+            //if error
+            if (firstHeader.getType() == FCGIHeaderType.FCGI_STDERR) {
+                bufferStdoutData(firstHeader.getLength(), firstHeader.getPadding());
+
+                //Make a note that this request has errors
+                cleanStdErr = false;
             }
 
             readStarted = true;
@@ -524,6 +542,15 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         if (endRequest != null) {
             throw new FCGIException("the request has Finished");
         }
+    }
+
+    /**
+     * Has this request posted anything on stderr?
+     *
+     * @return boolean
+     */
+    public boolean hasOutputOnStdErr() {
+        return !cleanStdErr;
     }
 
     private int bufferStdoutData(int available, int padding) throws IOException {
