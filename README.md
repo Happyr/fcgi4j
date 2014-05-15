@@ -1,6 +1,6 @@
 # FCGI4j
 
-Connect to Fast CGI from your java application.
+Connect to Fast CGI from your java application. With this library you may start PHP scripts with PHP-FPM. 
 
 This is a fork from the [subversion repo][google] at revision r17. The project was not maintained any more and I could not get in
 touch with the author. I decided to maintain this library myself. r17 was the last revision where the library worked
