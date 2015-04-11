@@ -45,6 +45,6 @@ connection.close();
 ```
 
 ## Specification
-This library implement the [FastCGI Specification](http://www.fastcgi.com/devkit/doc/fcgi-spec.html).
+This library implements the [FastCGI Specification](http://www.fastcgi.com/devkit/doc/fcgi-spec.html).
 
 [google]:https://code.google.com/p/fcgi4j/
