@@ -68,7 +68,11 @@ public class FCGIParams {
         if (length < 0x80) {
             byteBuffer.put((byte) length);
         } else {
-            byteBuffer.putInt(length);
+            // make sure that the first bit in the first byte is 1
+            byteBuffer.put((byte) ((length >> 24) | 0x80));
+            byteBuffer.put((byte) (length >> 16));
+            byteBuffer.put((byte) (length >> 8));
+            byteBuffer.put((byte) (length));
         }
     }
 }
