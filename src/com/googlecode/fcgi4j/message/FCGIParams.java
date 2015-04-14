@@ -3,6 +3,7 @@ package com.googlecode.fcgi4j.message;
 import com.googlecode.fcgi4j.constant.FCGIHeaderType;
 import com.googlecode.fcgi4j.exceptions.FCGIException;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 
 /**
@@ -52,7 +53,7 @@ public class FCGIParams {
     }
 
     private int countLength(String str) {
-        int length = str.length();
+        int length = utf8StringLength(str);
         if (length < 0x80) {
             length += 1;
         } else {
@@ -63,7 +64,7 @@ public class FCGIParams {
     }
 
     private void bufferLength(ByteBuffer byteBuffer, String str) {
-        int length = str.length();
+        int length = utf8StringLength(str);
 
         if (length < 0x80) {
             byteBuffer.put((byte) length);
@@ -74,5 +75,15 @@ public class FCGIParams {
             byteBuffer.put((byte) (length >> 8));
             byteBuffer.put((byte) (length));
         }
+    }
+
+    private int utf8StringLength(String str) {
+        try {
+            return str.getBytes("UTF-8").length;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+        return 0;
     }
 }
