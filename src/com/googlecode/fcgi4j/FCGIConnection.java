@@ -476,26 +476,37 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
     public int read(ByteBuffer dst) throws IOException {
         readyRead();
 
-        int read = readBufferedData(dst);
+        int read = 0;
+
+        int available = 0, padding = 0;
+
+        outer:
+        if (available == 0) {
+            read += readBufferedData(dst);
+        } else {
+            read += readStdoutData(dst, available, padding);
+        }
 
         while (dst.hasRemaining()) {
             FCGIHeader header = readHeader();
 
-            if (header.getType() == FCGIHeaderType.FCGI_STDOUT && header.getLength() != 0) {
+            if ((header.getType() == FCGIHeaderType.FCGI_STDOUT || header.getType() == FCGIHeaderType.FCGI_STDERR) && header.getLength() != 0) {
                 int currentRead = readStdoutData(dst, header.getLength(), header.getPadding());
 
-                if (currentRead < header.getLength()) {
-                    bufferStdoutData(header.getLength() - currentRead, header.getPadding());
-                }
+                available = header.getLength() - currentRead;
+                padding = header.getPadding();
 
                 read += currentRead;
             } else {
                 if (header.getType() == FCGIHeaderType.FCGI_END_REQUEST) {
                     finishRequest(header);
+                    break;
                 }
-
-                break;
             }
+        }
+
+        if (available != 0) {
+            bufferStdoutData(available, padding);
         }
 
         return read;
