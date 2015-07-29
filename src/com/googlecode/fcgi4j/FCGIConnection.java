@@ -481,28 +481,26 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         int available = 0, padding = 0;
 
         outer:
-        if (true) {
-            if (available == 0) {
-                read += readBufferedData(dst);
+        if (available == 0) {
+            read += readBufferedData(dst);
+        } else {
+            read += readStdoutData(dst, available, padding);
+        }
+
+        while (dst.hasRemaining()) {
+            FCGIHeader header = readHeader();
+
+            if ((header.getType() == FCGIHeaderType.FCGI_STDOUT || header.getType() == FCGIHeaderType.FCGI_STDERR) && header.getLength() != 0) {
+                int currentRead = readStdoutData(dst, header.getLength(), header.getPadding());
+
+                available = header.getLength() - currentRead;
+                padding = header.getPadding();
+
+                read += currentRead;
             } else {
-                read += readStdoutData(dst, available, padding);
-            }
-
-            while (dst.hasRemaining()) {
-                FCGIHeader header = readHeader();
-
-                if ((header.getType() == FCGIHeaderType.FCGI_STDOUT || header.getType() == FCGIHeaderType.FCGI_STDERR) && header.getLength() != 0) {
-                    int currentRead = readStdoutData(dst, header.getLength(), header.getPadding());
-
-                    available = header.getLength() - currentRead;
-                    padding = header.getPadding();
-
-                    read += currentRead;
-                } else {
-                    if (header.getType() == FCGIHeaderType.FCGI_END_REQUEST) {
-                        finishRequest(header);
-                        break;
-                    }
+                if (header.getType() == FCGIHeaderType.FCGI_END_REQUEST) {
+                    finishRequest(header);
+                    break;
                 }
             }
         }
