@@ -14,14 +14,27 @@ as expected.
 FCGIConnection connection = FCGIConnection.open();
 connection.connect(new InetSocketAddress("localhost", 5672));
 
-connection.beginRequest("/var/www/foobar.php");
-connection.setRequestMethod("POST");
+String requestMethod = "GET"
+String targetScript = "/var/www/foobar.php"
 
-byte[] postData = "hello=world".getBytes();
+connection.beginRequest(targetScript);
+connection.setRequestMethod(requestMethod);
+connection.setQueryString("querystring=1");
 
-//set contentLength, it's important
-connection.setContentLength(postData.length);
-connection.write(ByteBuffer.wrap(postData));
+connection.addParams("DOCUMENT_ROOT", "/var/www/");
+connection.addParams("SCRIPT_FILENAME", targetScript);
+connection.addParams("SCRIPT_NAME", targetSCript);
+connection.addParams("GATEWAY_INTERFACE", "FastCGI/1.0");
+connection.addParams("SERVER_PROTOCOL", "HTTP/1.1");
+connection.addParams("CONTENT_TYPE", "application/x-www-form-urlencoded");
+
+if(requestMethod.equalsIgnoreCase("POST")){
+    byte[] postData = "hello=world".getBytes();
+
+    //set contentLength, it's important
+    connection.setContentLength(postData.length);
+    connection.write(ByteBuffer.wrap(postData));
+}
 
 //print response headers
 Map<String, String> responseHeaders = connection.getResponseHeaders();
