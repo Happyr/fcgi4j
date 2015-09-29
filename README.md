@@ -28,6 +28,7 @@ connection.addParams("GATEWAY_INTERFACE", "FastCGI/1.0");
 connection.addParams("SERVER_PROTOCOL", "HTTP/1.1");
 connection.addParams("CONTENT_TYPE", "application/x-www-form-urlencoded");
 
+//add post data only if request method is GET
 if(requestMethod.equalsIgnoreCase("POST")){
     byte[] postData = "hello=world".getBytes();
 
