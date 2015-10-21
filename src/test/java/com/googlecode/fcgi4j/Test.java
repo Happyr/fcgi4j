@@ -1,4 +1,4 @@
-package test;
+package com.googlecode.fcgi4j;
 
 import com.googlecode.fcgi4j.FCGIConnection;
 
@@ -17,10 +17,10 @@ public class Test {
      */
     public static void main(String[] args) throws IOException {
         FCGIConnection connection = FCGIConnection.open();
-        connection.connect(new InetSocketAddress("192.168.47.11", 9000));
+        connection.connect(new InetSocketAddress("127.0.0.1", 9000));
 
-        connection.beginRequest("fcgi.php");
-        connection.setRequestMethod("post");
+        connection.beginRequest("/var/www/stderr.php");
+        connection.setRequestMethod("POST");
         connection.setQueryString("text=hello");
         connection.addParams("DOCUMENT_ROOT", "/var/www");
 
