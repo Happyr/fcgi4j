@@ -321,7 +321,6 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         buffersSize[0] += buffers.length;
     }
 
-    @Override
     public long write(ByteBuffer[] srcs, int offset, int length) throws IOException {
         readyWrite();
 
@@ -349,12 +348,10 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         return written;
     }
 
-    @Override
     public long write(ByteBuffer[] srcs) throws IOException {
         return write(srcs, 0, srcs.length);
     }
 
-    @Override
     public int write(ByteBuffer src) throws IOException {
         readyWrite();
 
@@ -409,18 +406,15 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         return stdin.getLength();
     }
 
-    @Override
     public boolean isOpen() {
         return open;
     }
 
-    @Override
     public void close() throws IOException {
         socketChannel.close();
         open = false;
     }
 
-    @Override
     public long read(ByteBuffer[] dsts, int offset, int length) throws IOException {
         readyRead();
 
@@ -467,12 +461,10 @@ public class FCGIConnection implements GatheringByteChannel, ScatteringByteChann
         return read;
     }
 
-    @Override
     public long read(ByteBuffer[] dsts) throws IOException {
         return read(dsts, 0, dsts.length);
     }
 
-    @Override
     public int read(ByteBuffer dst) throws IOException {
         readyRead();
 
